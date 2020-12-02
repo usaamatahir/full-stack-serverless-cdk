@@ -1,0 +1,366 @@
+Resources:
+  HelloHandlerServiceRole11EF7C63:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/HelloHandler/ServiceRole/Resource
+  HelloHandler2E4FBA4D:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90bS3Bucket820E865B
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90bS3VersionKey67444BCC
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90bS3VersionKey67444BCC
+      Handler: hello.handler
+      Role:
+        Fn::GetAtt:
+          - HelloHandlerServiceRole11EF7C63
+          - Arn
+      Runtime: nodejs10.x
+    DependsOn:
+      - HelloHandlerServiceRole11EF7C63
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/HelloHandler/Resource
+      aws:asset:path: F:\Bootcamp\full-stack-serverless-cdk\step-02-lambda-function\lambda
+      aws:asset:property: Code
+  EndPoint124B3BBF:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: EndPoint
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Resource
+  EndPointCloudWatchRole4A61FE7D:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/CloudWatchRole/Resource
+  EndPointAccountF33475D8:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - EndPointCloudWatchRole4A61FE7D
+          - Arn
+    DependsOn:
+      - EndPoint124B3BBF
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Account
+  EndPointDeployment88B793DDee4d6bbd8a0fd959c9a31bf20d13af6c:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: EndPoint124B3BBF
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - EndPointproxyANY3C242885
+      - EndPointproxyB231C53C
+      - EndPointANY5ADEA79A
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Deployment/Resource
+  EndPointDeploymentStageprod14DD35B0:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: EndPoint124B3BBF
+      DeploymentId:
+        Ref: EndPointDeployment88B793DDee4d6bbd8a0fd959c9a31bf20d13af6c
+      StageName: prod
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/DeploymentStage.prod/Resource
+  EndPointproxyB231C53C:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - EndPoint124B3BBF
+          - RootResourceId
+      PathPart: "{proxy+}"
+      RestApiId:
+        Ref: EndPoint124B3BBF
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/{proxy+}/Resource
+  EndPointproxyANYApiPermissionStep02LambdaFunctionStackEndPointB23384CEANYproxy6702C441:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - HelloHandler2E4FBA4D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: EndPoint124B3BBF
+            - /
+            - Ref: EndPointDeploymentStageprod14DD35B0
+            - /*/*
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/{proxy+}/ANY/ApiPermission.Step02LambdaFunctionStackEndPointB23384CE.ANY..{proxy+}
+  EndPointproxyANYApiPermissionTestStep02LambdaFunctionStackEndPointB23384CEANYproxy7C0C6C82:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - HelloHandler2E4FBA4D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: EndPoint124B3BBF
+            - /test-invoke-stage/*/*
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/{proxy+}/ANY/ApiPermission.Test.Step02LambdaFunctionStackEndPointB23384CE.ANY..{proxy+}
+  EndPointproxyANY3C242885:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Ref: EndPointproxyB231C53C
+      RestApiId:
+        Ref: EndPoint124B3BBF
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - HelloHandler2E4FBA4D
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/{proxy+}/ANY/Resource
+  EndPointANYApiPermissionStep02LambdaFunctionStackEndPointB23384CEANY24A6AB2C:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - HelloHandler2E4FBA4D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: EndPoint124B3BBF
+            - /
+            - Ref: EndPointDeploymentStageprod14DD35B0
+            - /*/
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/ANY/ApiPermission.Step02LambdaFunctionStackEndPointB23384CE.ANY..
+  EndPointANYApiPermissionTestStep02LambdaFunctionStackEndPointB23384CEANYD5A563CE:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - HelloHandler2E4FBA4D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: EndPoint124B3BBF
+            - /test-invoke-stage/*/
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/ANY/ApiPermission.Test.Step02LambdaFunctionStackEndPointB23384CE.ANY..
+  EndPointANY5ADEA79A:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Fn::GetAtt:
+          - EndPoint124B3BBF
+          - RootResourceId
+      RestApiId:
+        Ref: EndPoint124B3BBF
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - HelloHandler2E4FBA4D
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/EndPoint/Default/ANY/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.75.0,@aws-cdk/assets=1.75.0,@aws-cdk/aws-apigateway=1.75.0,@aws-cdk/aws-applicationautoscaling=1.75.0,@aws-cdk/aws-autoscaling-common=1.75.0,@aws-cdk/aws-cloudwatch=1.75.0,@aws-cdk/aws-codeguruprofiler=1.75.0,@aws-cdk/aws-ec2=1.75.0,@aws-cdk/aws-events=1.75.0,@aws-cdk/aws-iam=1.75.0,@aws-cdk/aws-kms=1.75.0,@aws-cdk/aws-lambda=1.75.0,@aws-cdk/aws-logs=1.75.0,@aws-cdk/aws-s3=1.75.0,@aws-cdk/aws-s3-assets=1.75.0,@aws-cdk/aws-sqs=1.75.0,@aws-cdk/aws-ssm=1.75.0,@aws-cdk/cloud-assembly-schema=1.75.0,@aws-cdk/core=1.75.0,@aws-cdk/cx-api=1.75.0,@aws-cdk/region-info=1.75.0,jsii-runtime=node.js/v12.19.0
+    Metadata:
+      aws:cdk:path: Step02LambdaFunctionStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Parameters:
+  AssetParameters5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90bS3Bucket820E865B:
+    Type: String
+    Description: S3 bucket for asset "5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90b"
+  AssetParameters5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90bS3VersionKey67444BCC:
+    Type: String
+    Description: S3 key for asset version "5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90b"
+  AssetParameters5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90bArtifactHash8DE9A060:
+    Type: String
+    Description: Artifact hash for asset "5c780e1404b64574fbe74011d17a30a4a7392a951f331dd0f4159890100df90b"
+Outputs:
+  EndPointEndpoint43185652:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: EndPoint124B3BBF
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: EndPointDeploymentStageprod14DD35B0
+          - /
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+
