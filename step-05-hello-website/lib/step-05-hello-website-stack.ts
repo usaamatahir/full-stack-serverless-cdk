@@ -16,14 +16,23 @@ export class Step05HelloWebsiteStack extends cdk.Stack {
       versioned: true,
     });
 
+    // =============================================================================================
+    // Speeds up distribution of your static and dynamic web content to your users.
+    // =============================================================================================
     const distribution = new cloudfront.Distribution(this, "MyDistribution", {
       defaultBehavior: { origin: new origins.S3Origin(webBucket) },
     });
 
+    // =============================================================================================
+    // Show Output
+    // =============================================================================================
     new cdk.CfnOutput(this, "DistributionDomainName", {
       value: distribution.domainName,
     });
 
+    // =============================================================================================
+    // Deploy S3 bucketss
+    // =============================================================================================
     const webDeployment = new s3deploy.BucketDeployment(this, "DeployWebsite", {
       sources: [s3deploy.Source.asset("./website")],
       destinationBucket: webBucket,

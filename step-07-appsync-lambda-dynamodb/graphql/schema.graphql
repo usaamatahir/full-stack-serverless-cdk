@@ -1,0 +1,26 @@
+type TODO {
+  id: ID!
+  task: String!
+  done: Boolean!
+}
+
+input ADDTODO {
+  id: ID!
+  task: String!
+  done: Boolean!
+}
+
+input UPDATETODO {
+  id: ID!
+  task: String!
+  done: Boolean!
+}
+
+type Query {
+  todos: [TODO!]!
+}
+type Mutation {
+  addTodo(task: ADDTODO!): TODO!
+  checkedTodo(task: UPDATETODO!): TODO
+  deleteTodo(id: String!): String
+}
